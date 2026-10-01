@@ -1,0 +1,11 @@
+{
+  "bos_token_id": 64000,
+  "decoder_start_token_id": 64007,
+  "eos_token_id": 64001,
+  "forced_eos_token_id": 2,
+  "no_repeat_ngram_size": 3,
+  "num_beams": 5,
+  "pad_token_id": 0,
+  "repetition_penalty": 1.2,
+  "transformers_version": "4.35.2"
+}

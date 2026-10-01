@@ -1,0 +1,31 @@
+{
+  "additional_special_tokens": [
+    "<s>",
+    "</s>",
+    "<2as>",
+    "<2bn>",
+    "<2en>",
+    "<2gu>",
+    "<2hi>",
+    "<2kn>",
+    "<2ml>",
+    "<2mr>",
+    "<2or>",
+    "<2pa>",
+    "<2ta>",
+    "<2te>"
+  ],
+  "bos_token": "[CLS]",
+  "cls_token": "[CLS]",
+  "eos_token": "[SEP]",
+  "mask_token": {
+    "content": "[MASK]",
+    "lstrip": true,
+    "normalized": true,
+    "rstrip": false,
+    "single_word": false
+  },
+  "pad_token": "<pad>",
+  "sep_token": "[SEP]",
+  "unk_token": "<unk>"
+}
