@@ -49,10 +49,10 @@ export const upload = {
     onProgress?.("Uploading PDF…");
     const form = new FormData();
     form.append("file", file);
-    form.append("title", meta.title);
-    if (meta.chapter_number) form.append("chapter_number", meta.chapter_number);
-    form.append("subject", meta.subject || "");
-    form.append("class_level", meta.class_level || "");
+    form.append("title", meta.title.trim());
+    if (meta.chapter_number) form.append("chapter_number", String(meta.chapter_number));
+    form.append("subject", meta.subject.trim() || "General");
+    form.append("class_level", meta.class_level.trim() || "N/A");
     form.append("language", meta.language || "auto");
 
     const uploadRes = await fetch(`${BASE_URL}/books/upload/full`, {
@@ -61,7 +61,12 @@ export const upload = {
     });
     if (!uploadRes.ok) {
       const body = await uploadRes.json().catch(() => ({}));
-      throw new Error(body.detail || body.error || `Upload failed (${uploadRes.status})`);
+      // FastAPI validation errors return detail as an array of objects
+      let detail = body.detail || body.error || `Upload failed (${uploadRes.status})`;
+      if (Array.isArray(detail)) {
+        detail = detail.map((d) => `${d.loc?.slice(-1)[0] ?? "field"}: ${d.msg}`).join(", ");
+      }
+      throw new Error(detail);
     }
     const data = await uploadRes.json();
     if (data.status === "error") {
