@@ -5,9 +5,9 @@ export default function QuizSection({ book, chapters }) {
   const [selectedChapter, setSelectedChapter] = useState(
     chapters && chapters.length > 0 ? (chapters[0].chapter_num ?? chapters[0].chapter_number ?? "") : ""
   );
-  const [totalQuestions, setTotalQuestions] = useState(8);
+  const [totalQuestions, setTotalQuestions] = useState(35);
   const [language, setLanguage] = useState("en");
-  const [selectedTypes, setSelectedTypes] = useState(["mcq", "true_false", "fill_blank", "short_answer"]);
+  const [selectedTypes, setSelectedTypes] = useState(["mcq", "true_false", "fill_blank", "multi"]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -48,9 +48,9 @@ export default function QuizSection({ book, chapters }) {
         num,
         chObj?.id,
         totalQuestions,
-        ["mcq", "true_false", "fill_blank", "short_answer"].filter((t) => selectedTypes.includes(t)).length
-          ? selectedTypes
-          : ["mcq", "true_false", "fill_blank", "short_answer"],
+        ["mcq", "true_false", "fill_blank", "multi"].filter((t) => selectedTypes.includes(t)).length
+          ? selectedTypes.filter((t) => t !== "short_answer")
+          : ["mcq", "true_false", "fill_blank", "multi"],
         language
       );
       if (data.status === "error") {
@@ -93,12 +93,14 @@ export default function QuizSection({ book, chapters }) {
         ) {
           earned++;
         }
-      } else {
-        // short answer is self-assessed / marked complete if student typed something
+      } else if (q.type === "multi") {
         totalGraded++;
-        if (ans && ans.trim().length > 5) {
-          earned++;
-        }
+        const correctSet = new Set(q.correct_indices || []);
+        const userSet = new Set(Array.isArray(ans) ? ans : []);
+        const allCorrect =
+          correctSet.size === userSet.size &&
+          [...correctSet].every((x) => userSet.has(x));
+        if (allCorrect) earned++;
       }
     });
 
@@ -131,7 +133,7 @@ export default function QuizSection({ book, chapters }) {
         <div>
           <h2 className="ncert-page-title">🎯 Automatic Question & Quiz Generator</h2>
           <p className="ncert-page-subtitle">
-            Generate customized NCERT practice quizzes with <strong>MCQs, True/False, Fill in the Blanks, and Short Answer</strong> questions. Take the interactive quiz to get instant scoring, detailed explanations, and performance tracking.
+            Generate customized NCERT practice quizzes with <strong>MCQs, True/False, Fill in the Blanks, and Multi-select</strong> questions. Take the interactive quiz to get instant scoring, detailed explanations, and performance tracking.
           </p>
         </div>
       </div>
@@ -180,9 +182,10 @@ export default function QuizSection({ book, chapters }) {
               value={totalQuestions}
               onChange={(e) => setTotalQuestions(parseInt(e.target.value, 10))}
             >
-              <option value={5}>5 Questions</option>
-              <option value={8}>8 Questions</option>
-              <option value={10}>10 Questions</option>
+              <option value={20}>20 Questions</option>
+              <option value={30}>30 Questions</option>
+              <option value={35}>35 Questions</option>
+              <option value={40}>40 Questions</option>
             </select>
           </div>
 
@@ -213,7 +216,7 @@ export default function QuizSection({ book, chapters }) {
                 { id: "mcq", label: "MCQ" },
                 { id: "true_false", label: "True/False" },
                 { id: "fill_blank", label: "Fill blanks" },
-                { id: "short_answer", label: "Short answer" },
+                { id: "multi", label: "Multi-select" },
               ].map((t) => {
                 const on = selectedTypes.includes(t.id);
                 return (
@@ -471,22 +474,57 @@ export default function QuizSection({ book, chapters }) {
                   </div>
                 )}
 
-                {/* Question Type 4: Short Answer */}
-                {q.type === "short_answer" && (
+                {/* Question Type 4: Multi-select */}
+                {q.type === "multi" && (
                   <div>
-                    <textarea
-                      className="ncert-qg-select"
-                      rows={3}
-                      placeholder="Write your brief answer based on NCERT content..."
-                      style={{ width: "100%", resize: "vertical" }}
-                      value={userAns || ""}
-                      onChange={(e) => handleSelectOption(q.id, e.target.value)}
-                      disabled={isSubmitted}
-                    />
+                    <p style={{ fontSize: 12, color: "#94a3b8", marginBottom: 8 }}>
+                      Select all correct answers
+                    </p>
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+                      {(q.options || []).map((opt, oIdx) => {
+                        const selected = Array.isArray(userAns) && userAns.includes(oIdx);
+                        const isCorrect = (q.correct_indices || []).includes(oIdx);
+                        let bg = selected ? "#1e293b" : "#0c1020";
+                        let border = selected ? "#6366f1" : "#1e2540";
+                        if (isSubmitted) {
+                          if (isCorrect) { bg = "#0b2e21"; border = "#10b981"; }
+                          else if (selected && !isCorrect) { bg = "#3b1717"; border = "#ef4444"; }
+                        }
+                        return (
+                          <div
+                            key={oIdx}
+                            onClick={() => {
+                              if (isSubmitted) return;
+                              const prev = Array.isArray(userAns) ? userAns : [];
+                              const next = prev.includes(oIdx)
+                                ? prev.filter((x) => x !== oIdx)
+                                : [...prev, oIdx];
+                              handleSelectOption(q.id, next);
+                            }}
+                            style={{
+                              display: "flex", alignItems: "center", gap: 10,
+                              padding: "10px 14px", borderRadius: 8,
+                              border: `1px solid ${border}`, background: bg,
+                              cursor: isSubmitted ? "default" : "pointer",
+                              color: "#ffffff", fontSize: 14,
+                            }}
+                          >
+                            <span style={{
+                              width: 24, height: 24, borderRadius: 4,
+                              background: selected ? "#4f6ef7" : "#1e2540",
+                              display: "inline-flex", alignItems: "center",
+                              justifyContent: "center", fontSize: 12, fontWeight: 700,
+                            }}>
+                              {String.fromCharCode(65 + oIdx)}
+                            </span>
+                            <span>{opt}</span>
+                          </div>
+                        );
+                      })}
+                    </div>
                     {isSubmitted && (
-                      <div style={{ marginTop: 10, background: "#0c1020", padding: "12px 16px", borderRadius: 6, border: "1px solid #1e2540" }}>
-                        <div style={{ fontSize: 12, color: "#38bdf8", fontWeight: 700 }}>MODEL ANSWER:</div>
-                        <div style={{ fontSize: 14, color: "#e2e8f0", marginTop: 4 }}>{q.answer}</div>
+                      <div style={{ marginTop: 8, fontSize: 13, color: "#34d399" }}>
+                        Correct: {(q.correct_indices || []).map((i) => String.fromCharCode(65 + i)).join(", ")}
                       </div>
                     )}
                   </div>
@@ -541,7 +579,7 @@ export default function QuizSection({ book, chapters }) {
               <li><strong>Multiple Choice (MCQ):</strong> Conceptual test of critical facts</li>
               <li><strong>True/False:</strong> Analytical statement evaluation</li>
               <li><strong>Fill in the Blanks:</strong> Key vocabulary and terminology recall</li>
-              <li><strong>Short Answer:</strong> Comprehension synthesis</li>
+              <li><strong>Multi-select:</strong> Choose all correct answers from options</li>
             </ul>
           </div>
 
