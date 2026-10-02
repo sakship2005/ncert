@@ -3,7 +3,6 @@ import { useLocation, useNavigationType } from "react-router-dom";
 
 const getHashId = (hash) => {
   const rawId = hash.slice(1);
-
   try {
     return decodeURIComponent(rawId);
   } catch {

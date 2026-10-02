@@ -3,6 +3,7 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { queryClientInstance } from "@/lib/query-client";
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 import ScrollToTop from "./components/ScrollToTop";
+import Landing from "./pages/Landing";
 import NcertDashboard from "./pages/NcertDashboard";
 import PageNotFound from "./lib/PageNotFound";
 
@@ -12,7 +13,8 @@ function App() {
       <Router>
         <ScrollToTop />
         <Routes>
-          <Route path="/" element={<NcertDashboard />} />
+          <Route path="/" element={<Landing />} />
+          <Route path="/dashboard" element={<NcertDashboard />} />
           <Route path="*" element={<PageNotFound />} />
         </Routes>
       </Router>
@@ -20,5 +22,4 @@ function App() {
     </QueryClientProvider>
   );
 }
-
 export default App;
