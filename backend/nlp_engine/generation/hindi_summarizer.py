@@ -17,7 +17,7 @@ from groq import Groq
 
 # ── CONFIG ────────────────────────────────────────────────────────────────────
 DEFAULT_MODEL_DIR_WORKSPACE = Path(__file__).resolve().parents[3] / "hindi_summarizer"
-DEFAULT_MODEL_DIR_PROJECT   = Path("C:/Users/saksh/nlp_project/hindi_summarizer")
+DEFAULT_MODEL_DIR_PROJECT   = Path("C:/Users/gaikw/OneDrive/Desktop/Project/ncert/hindi_summarizer")
 DEFAULT_GROQ_KEY            = os.getenv("GROQ_API_KEY", "")
 DEFAULT_GROQ_MODEL          = os.getenv("GROQ_MODEL", "openai/gpt-oss-20b")
 FALLBACK_GROQ_MODELS        = [

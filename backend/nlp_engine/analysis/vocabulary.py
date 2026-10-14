@@ -109,7 +109,7 @@ def extract_difficult_words(
         selected = [word for word, count in counts[:top_n]]
 
         # Use Groq to provide accurate simple meanings, synonyms, and examples
-            groq_key = os.getenv("GROQ_API_KEY", "")
+        groq_key = os.getenv("GROQ_API_KEY", "")
         try:
             client = Groq(api_key=groq_key)
             prompt = f"""तुम एक हिंदी भाषा और साहित्य के शिक्षक हो।

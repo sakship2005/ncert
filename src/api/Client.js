@@ -165,9 +165,18 @@ export const nlp = {
     }),
 };
 
-// ── Chat (Multilingual RAG backed) ─────────────────────────────────────────
+// Replace the existing `chat` export in Client.js with this:
+
 export const chat = {
-  send: (chapterId, message, history = [], language = "en", bookId = null, chapterNum = null) =>
+  send: (
+    chapterId,
+    message,
+    history = [],
+    language = "en",
+    bookId = null,
+    chapterNum = null,
+    deep = false,        // <-- new: true = Tier 2 deep research
+  ) =>
     request("/nlp/ask", {
       method: "POST",
       body: JSON.stringify({
@@ -176,6 +185,7 @@ export const chat = {
         chapter_num: chapterNum,
         question: message,
         language,
+        deep,
       }),
     }),
 };

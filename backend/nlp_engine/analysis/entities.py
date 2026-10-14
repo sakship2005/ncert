@@ -122,7 +122,7 @@ def extract_chapter_entities(text: str) -> dict:
             return result
 
     # Multilingual / LLM-based entity extraction for Devanagari or fallback
-        groq_key = os.getenv("GROQ_API_KEY", "")
+    groq_key = os.getenv("GROQ_API_KEY", "")
     try:
         client = Groq(api_key=groq_key)
         prompt = f"""Extract actual Named Entities from this NCERT chapter text.

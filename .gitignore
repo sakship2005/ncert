@@ -41,6 +41,15 @@ hindi_summarizer/*.pth
 *.njsproj
 *.sln
 *.sw?
-
+# Python cache
+__pycache__/
+*.py[cod]
 .env
 .vite
+
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.env
+.env.*
