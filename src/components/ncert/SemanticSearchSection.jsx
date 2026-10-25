@@ -12,16 +12,24 @@ export default function SemanticSearchSection({ book }) {
       setError("Enter a search query");
       return;
     }
+    // FIX: guard against no active book before firing
+    if (!book?.id) {
+      setError("No textbook selected. Please select or upload a textbook first.");
+      return;
+    }
     setLoading(true);
     setError("");
     setResults(null);
     try {
-      const data = await nlp.semanticSearch(book?.id, query.trim());
+      // FIX: was passing book?.id as chapter_id; now passes as bookId (first arg).
+      // semanticSearch(bookId, query, topK)
+      const data = await nlp.semanticSearch(book.id, query.trim());
       setResults(data.results || []);
     } catch (e) {
-      setError(e.message);
+      setError(e.message || "Search failed. Please try again.");
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   return (
@@ -42,14 +50,14 @@ export default function SemanticSearchSection({ book }) {
             style={{ flex: 1, minWidth: 200 }}
             placeholder="e.g. How does photosynthesis work?"
             value={query}
-            onChange={(e) => setQuery(e.target.value)}
+            onChange={(e) => { setQuery(e.target.value); setError(""); }}
             onKeyDown={(e) => e.key === "Enter" && handleSearch()}
           />
           <button
             className="ncert-qg-btn"
             style={{ width: "auto", padding: "8px 24px" }}
             onClick={handleSearch}
-            disabled={loading}
+            disabled={loading || !book?.id}
           >
             {loading ? "⏳ Searching…" : "🔍 Search"}
           </button>
@@ -57,15 +65,26 @@ export default function SemanticSearchSection({ book }) {
         {error && <p style={{ color: "#f472b6", fontSize: 12, marginTop: 8 }}>{error}</p>}
       </div>
 
-      {results && (
+      {/* No book selected hint */}
+      {!book?.id && !loading && (
+        <div className="ncert-card">
+          <p style={{ color: "#6b7db3", fontSize: 13 }}>
+            Select a textbook from the sidebar to search its chapters.
+          </p>
+        </div>
+      )}
+
+      {results !== null && (
         <div>
           <div className="ncert-card-title" style={{ marginBottom: 16 }}>
             <span className="ncert-card-title-dot" style={{ background: "#06b6d4" }}></span>
-            {results.length} Relevant Results
+            {results.length} Relevant Result{results.length !== 1 ? "s" : ""}
           </div>
           {results.length === 0 ? (
             <div className="ncert-card">
-              <p style={{ color: "#6b7db3" }}>No matching content found.</p>
+              <p style={{ color: "#6b7db3" }}>
+                No matching content found. Try different keywords or a broader question.
+              </p>
             </div>
           ) : (
             results.map((r, i) => (
