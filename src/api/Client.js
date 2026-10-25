@@ -26,7 +26,6 @@ async function request(path, options = {}) {
 export const books = {
   list: async () => {
     const data = await request("/books");
-    // Normalize both list and { books: [...] } formats
     if (Array.isArray(data)) return data;
     if (data && Array.isArray(data.books)) return data.books;
     return [];
@@ -61,7 +60,6 @@ export const upload = {
     });
     if (!uploadRes.ok) {
       const body = await uploadRes.json().catch(() => ({}));
-      // FastAPI validation errors return detail as an array of objects
       let detail = body.detail || body.error || `Upload failed (${uploadRes.status})`;
       if (Array.isArray(detail)) {
         detail = detail.map((d) => `${d.loc?.slice(-1)[0] ?? "field"}: ${d.msg}`).join(", ");
@@ -80,12 +78,17 @@ export const upload = {
 // ── NLP functions ──────────────────────────────────────────────────────────
 export const nlp = {
   /**
-   * Semantic search across chapter chunks
+   * Semantic search across all chapters of a book.
+   *
+   * FIX: was sending chapter_id: book.id — the backend's /search route
+   * accepts book_id. We now send book_id explicitly.
+   * The backend also accepts chapter_id as a fallback alias so both old
+   * and new frontend versions keep working during rollout.
    */
-  semanticSearch: (chapterId, query) =>
+  semanticSearch: (bookId, query, topK = 5) =>
     request("/search", {
       method: "POST",
-      body: JSON.stringify({ chapter_id: chapterId, query }),
+      body: JSON.stringify({ book_id: bookId, query, top_k: topK }),
     }),
 
   /**
@@ -107,7 +110,7 @@ export const nlp = {
     }),
 
   /**
-   * Feature 3: Chapter-wise Detailed NLP Analysis (actual names of entities & concepts)
+   * Feature 3: Chapter-wise Detailed NLP Analysis
    */
   getChapterAnalysis: (bookId, chapterNum, chapterId = null) =>
     request("/nlp/chapter-analysis", {
@@ -165,8 +168,6 @@ export const nlp = {
     }),
 };
 
-// Replace the existing `chat` export in Client.js with this:
-
 export const chat = {
   send: (
     chapterId,
@@ -175,7 +176,7 @@ export const chat = {
     language = "en",
     bookId = null,
     chapterNum = null,
-    deep = false,        // <-- new: true = Tier 2 deep research
+    deep = false,
   ) =>
     request("/nlp/ask", {
       method: "POST",
